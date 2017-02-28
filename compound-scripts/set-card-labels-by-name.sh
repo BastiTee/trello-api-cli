@@ -35,25 +35,17 @@ eval "$sed $1" | while read line; do
 done
 
 echo "^ BOARD ID | ^ CARD ID | ^ LABEL ID"
-read -p "Does that look ok? Shall I write card labels? (y/n) " -n 1 -r
+read -p "Does that look ok? Shall I overwrite card labels? (y/n) " -n 1 -r
 echo "" # (optional) move to a new line
 if [[ ! $REPLY =~ ^[Yy]$ ]]
 then
     exit 1
 fi
 
-# delete labels
-eval "$sed $1" | while read line; do
-    [ -z "$line" ] && continue
-    id=$( awk '{ print $1 }' <<< $line )
-    ./trello-api-cli deleteCardLabels -c $id 2> /dev/null
-done
-
-# add new label
 eval "$sed $1" | while read line; do
     [ -z "$line" ] && continue
     id=$( awk '{ print $1 }' <<< $line )
     labelid=$( awk '{ print $2 }' <<< $line )
-    echo "--- $line"
-    ./trello-api-cli setCardLabel -c $id -l $labelid 2> /dev/null
+    ./trello-api-cli setCardLabel -c $id -l $labelid
+    #2> /dev/null
 done

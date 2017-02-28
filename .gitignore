@@ -1,6 +1,7 @@
 # Own additions
 *.csv
 *.csv#
+input-data/
 
 # Logs
 logs
