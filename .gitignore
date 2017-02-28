@@ -1,3 +1,7 @@
+# Own additions
+*.csv
+*.csv#
+
 # Logs
 logs
 *.log

@@ -1,0 +1,21 @@
+{
+    "name": "trello-api-cli",
+    "version": "0.1.0",
+    "description": "A command-line wrapper for the trello API written in node.js",
+    "main": "init.js",
+    "scripts": {
+        "start": "node init.js"
+    },
+    "repository": {
+        "type": "git",
+        "url": "git+https://github.com/BastiTee/trello-api-cli"
+    },
+    "author": "Basti Tee",
+    "license": "Apache-2.0",
+    "homepage": "https://github.com/BastiTee/trello-api-cli",
+    "dependencies": {
+        "node-trello": "^1.1.2",
+        "minimist": "^1.2.0",
+        "opn": "^4.0.2"
+    }
+}

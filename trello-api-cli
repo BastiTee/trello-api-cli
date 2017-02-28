@@ -1,0 +1,5 @@
+#!/bin/bash
+[ -z $( command -v npm ) ] && { echo "Node/npm not installed."; exit 1; }
+cd "$( dirname "$( readlink -f "$0")")"
+[ ! -d "node_modules" ] && npm install
+node init.js $@
