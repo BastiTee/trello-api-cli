@@ -44,4 +44,4 @@ If you just want to print out the payload without the CLI's informational output
 
 ## License
 
-This code is licensed under [GNU GENERAL PUBLIC LICENSE Version 2](LICENSE).
+This code is licensed under [MIT](LICENSE).
