@@ -4,14 +4,14 @@ tsCore = function() {
     var getRaw = function(tc, argv) {
         assertArgument(argv.p, '-p <API-PATH> not provided.');
         get(tc, argv.p, {}).then((data) => {
-            console.log(data.data);
+            console.log(data.payload);
         });
     }
 
     var getBoardIds = function(tc, argv) {
-        get(tc, '/1/members/me/boards').then((boards) => {
-            for (var board of boards) {
-                console.log(board.id + ' \'' + board.name + '\'');
+        get(tc, '/1/members/me/boards').then((data) => {
+            for (var board of data.payload) {
+                console.log(board.id + ' \"' + board.name + '\"');
             }
         });
     }
@@ -19,9 +19,9 @@ tsCore = function() {
     var getLabels = function(tc, argv) {
         assertArgument(argv.b, '-b <BOARD-ID> not provided.')
         console.error('<<LABEL-ID>> <<LABEL-NAME>>');
-        get(tc, '/1/boards/' + argv.b + '/labels').then((labels) => {
-            for (var label of labels) {
-                console.log(label.id + ' \'' + label.name + '\'');
+        get(tc, '/1/boards/' + argv.b + '/labels').then((data) => {
+            for (var label of data.payload) {
+                console.log(label.id + ' \"' + label.name + '\"');
             }
         });
     }
@@ -33,10 +33,10 @@ tsCore = function() {
         get(tc, '/1/boards/' + argv.b + '/cards', {
             limit: argv.l,
             filter: 'all'
-        }).then((cards) => {
-            for (var card of cards) {
-                card.name = card.name.split('\'').join('');
-                console.log(card.id + ' \'' + card.name + '\' ' + card.idLabels.join(' '));
+        }).then((data) => {
+            for (var card of data.payload) {
+                card.name = card.name.split('\"').join('');
+                console.log(card.id + ' \"' + card.name + '\" ' + card.idLabels.join(' '));
             }
         });
     }
@@ -44,8 +44,9 @@ tsCore = function() {
     var setCardLabel = function(tc, argv) {
         assertArgument(argv.c, '-c <CARD-ID> not provided.');
         assertArgument(argv.l, '-l <LABEL-ID> not provided.');
-        get(tc, '/1/cards/' + argv.c).then((card) => {
-            console.log('-- ' + card.id + ' => \'' + card.name + '\'');
+        get(tc, '/1/cards/' + argv.c).then((data) => {
+            var card = data.payload;
+            console.log('-- ' + card.id + ' => \"' + card.name + '\"');
             if (card.idLabels === undefined || card.idLabels.length <= 0) {
                 console.log('   + no labels found')
                 return Promise.resolve();
@@ -70,12 +71,13 @@ tsCore = function() {
         assertArgument(argv.b, '-b <BOARD-ID> not provided.');
         var lastListId;
         get(tc, '/1/boards/' + argv.b + '/lists').then((data) => {
-            lastListId = data[data.length - 1].id;
+            lastListId = data.payload[data.payload.length - 1].id;
             return get(tc, '/1/boards/' + argv.b + '/cards', {
                 limit: 1000,
                 filter: 'closed'
             });
-        }).then((cards) => {
+        }).then((data) => {
+            var cards = data.payload;
             var chain = [];
             for (var card of cards) {
                 if (lastListId == card.idList) {
@@ -102,7 +104,6 @@ tsCore = function() {
                 }, {
                     listName: list.name,
                 }).then(function(data) {
-                    console.log('--- ' + data.vars.listName.toUpperCase());
                     var cards = data.payload;
                     cards.sort(function(a, b) {
                         if (a.closed)
@@ -113,9 +114,10 @@ tsCore = function() {
                             return 0;
                     })
                     for (var card of cards) {
-                        var state = card.closed ? "[CLOSED]" : "[OPEN]";
-                        console.log('    + ' + state + ' ' +
-                            card.name.substring(0, 80));
+                        var list = data.vars.listName;
+                        var state = card.closed ? 'closed' : 'open';
+                        console.log(list + ';' + state + ';\"' +
+                            card.name + '\"');
                     }
                 });
             }

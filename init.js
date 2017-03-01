@@ -16,7 +16,8 @@
     var publicKey;
     var secretKey;
 
-    console.error('Supported methods: ' + Object.keys(tsCore));
+    console.error('Supported methods: \n\t' +
+    String(Object.keys(tsCore)).split(',').join('\n\t') + '\n');
 
     try {
         publicKey = fs.readFileSync(publicKeyFile, 'utf8');
