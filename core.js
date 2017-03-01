@@ -4,7 +4,7 @@ tsCore = function() {
     var getRaw = function(tc, argv) {
         assertArgument(argv.p, '-p <API-PATH> not provided.');
         get(tc, argv.p, {}).then((data) => {
-            console.log(data);
+            console.log(data.data);
         });
     }
 
@@ -92,6 +92,36 @@ tsCore = function() {
         });
     }
 
+    var getBoardStructure = function(tc, argv) {
+        assertArgument(argv.b, '-b <BOARD-ID> not provided.');
+        get(tc, '/1/boards/' + argv.b + '/lists').then((data) => {
+            for (var list of data.payload) {
+                get(tc, '/1/lists/' + list.id + '/cards', {
+                    limit: 1000,
+                    filter: 'all'
+                }, {
+                    listName: list.name,
+                }).then(function(data) {
+                    console.log('--- ' + data.vars.listName.toUpperCase());
+                    var cards = data.payload;
+                    cards.sort(function(a, b) {
+                        if (a.closed)
+                            return 1;
+                        else if (b.closed)
+                            return -1;
+                        else
+                            return 0;
+                    })
+                    for (var card of cards) {
+                        var state = card.closed ? "[CLOSED]" : "[OPEN]";
+                        console.log('    + ' + state + ' ' +
+                            card.name.substring(0, 80));
+                    }
+                });
+            }
+        });
+    }
+
     // -----------------------------------------------------------------------
     return {
         getRaw: getRaw,
@@ -100,14 +130,22 @@ tsCore = function() {
         getCardLabels: getCardLabels,
         setCardLabel: setCardLabel,
         moveClosedCardToLastList: moveClosedCardToLastList,
+        getBoardStructure: getBoardStructure,
     };
     // -----------------------------------------------------------------------
 
-    function get(tc, path, options) {
+    function get(tc, path, options, vars) {
         return new Promise(function(resolve, reject) {
+            var varsLocal = vars;
             tc.get(path, options, function(err, data) {
-                // console.error('--get--');
-                err ? handleError(err) : resolve(data);
+                if (err) {
+                    handleError(err)
+                } else {
+                    resolve({
+                        payload: data,
+                        vars: varsLocal
+                    });
+                }
             });
         });
     };
