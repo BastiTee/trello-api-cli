@@ -3,7 +3,7 @@ tsCore = function() {
 
     var getRaw = function(tc, argv) {
         assertArgument(argv.p, '-p <API-PATH> not provided.');
-        get(tc, argv.p, {}).then((data) => {
+        get(tc, argv.p).then((data) => {
             console.log(data.payload);
         });
     }
@@ -24,6 +24,46 @@ tsCore = function() {
                 console.log(label.id + ' \"' + label.name + '\"');
             }
         });
+    }
+
+    var getCardStatistics = function(tc, argv) {
+        assertArgument(argv.b, '-b <BOARD-ID> not provided.');
+        assertArgument(argv.f, '-f <FROM> not provided (YYYY-MM-DD)');
+        assertArgument(argv.t, '-t <TO> not provided (YYYY-MM-DD)');
+        for (var d = new Date(argv.f); d < new Date(argv.t); d.setDate(d.getDate() + 1)) {
+            var since = dateToTrelloString(d);
+            var beforeDate = new Date(d);
+            beforeDate.setDate(beforeDate.getDate() + 1);
+            var before = dateToTrelloString(beforeDate);
+            console.log(since + " --> " + before);
+            get(tc, '/1/boards/' + argv.b + '/cards', {
+                limit: 1000,
+                filter: 'all',
+                before: before,
+                since: since,
+                actions: "updateCard:closed",
+            }).then((data) => {
+                for (var card of data.payload) {
+                    var cdate = dateToTrelloString(new Date(card.actions[0].date));
+                    console.log(cdate + " " + card.id + " CLOSED "
+                + card.idList + " " + clearCardName(card.name));
+                }
+            });
+            get(tc, '/1/boards/' + argv.b + '/cards', {
+                limit: 1000,
+                filter: 'all',
+                before: before,
+                since: since,
+                actions: "createCard",
+            }).then((data) => {
+                for (var card of data.payload) {
+                    var cdate = dateToTrelloString(new Date(card.actions[0].date));
+                    console.log(cdate + " " + card.id + " CREATE "
+                + card.idList + " " + clearCardName(card.name));
+                }
+            });
+        }
+
     }
 
     var getCardLabels = function(tc, argv) {
@@ -129,6 +169,7 @@ tsCore = function() {
         getRaw: getRaw,
         getBoardIds: getBoardIds,
         getLabels: getLabels,
+        getCardStatistics: getCardStatistics,
         getCardLabels: getCardLabels,
         setCardLabel: setCardLabel,
         moveClosedCardToLastList: moveClosedCardToLastList,
@@ -178,6 +219,24 @@ tsCore = function() {
             });
         });
     };
+
+    function clearCardName(name) {
+        return name.split(/[^a-zA-Z0-9\-üöäÜÄÖß]+/).join("_").substring(0,40);
+    }
+
+    function pad(num, size) {
+        var s = num + "";
+        while (s.length < size) s = "0" + s;
+        return s;
+    }
+
+    function dateToTrelloString(d) {
+        var date = d.getDate();
+        var month = d.getMonth();
+        month++;
+        var year = d.getFullYear();
+        return year + "." + pad(month, 2) + "." + pad(date, 2);
+    }
 
     function assertArgument(arg, message) {
         if (arg === undefined) {
