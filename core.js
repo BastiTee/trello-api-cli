@@ -16,6 +16,15 @@ tsCore = function() {
         });
     }
 
+    var getBoardLists = function(tc, argv) {
+        assertArgument(argv.b, '-b <BOARD-ID> not provided.')
+        get(tc, '/1/boards/' + argv.b + '/lists').then((data) => {
+            for (var board of data.payload) {
+                console.log(board.id + ' \"' + board.name + '\"');
+            }
+        });
+    }
+
     var getLabels = function(tc, argv) {
         assertArgument(argv.b, '-b <BOARD-ID> not provided.')
         console.error('<<LABEL-ID>> <<LABEL-NAME>>');
@@ -45,8 +54,8 @@ tsCore = function() {
             }).then((data) => {
                 for (var card of data.payload) {
                     var cdate = dateToTrelloString(new Date(card.actions[0].date));
-                    console.log(cdate + " " + card.id + " CLOSED "
-                + card.idList + " " + clearCardName(card.name));
+                    console.log(cdate + " " + card.id + " CLOSED " +
+                        card.idList + " " + clearCardName(card.name));
                 }
             });
             get(tc, '/1/boards/' + argv.b + '/cards', {
@@ -58,8 +67,8 @@ tsCore = function() {
             }).then((data) => {
                 for (var card of data.payload) {
                     var cdate = dateToTrelloString(new Date(card.actions[0].date));
-                    console.log(cdate + " " + card.id + " CREATE "
-                + card.idList + " " + clearCardName(card.name));
+                    console.log(cdate + " " + card.id + " CREATE " +
+                        card.idList + " " + clearCardName(card.name));
                 }
             });
         }
@@ -164,6 +173,21 @@ tsCore = function() {
         });
     }
 
+    var postNewCard = function(tc, argv) {
+        assertArgument(argv.l, '-l <LIST-ID> not provided.');
+        assertArgument(argv.d, '-d <CARDLABEL> not provided.');
+        var labels = []
+        if (argv.a) {
+            labels = [argv.a]
+        }
+        post(tc, '/1/cards/', {
+            name: argv.d,
+            pos: "top",
+            idList: argv.l,
+            idLabels: labels
+        });
+    }
+
     // -----------------------------------------------------------------------
     return {
         getRaw: getRaw,
@@ -174,6 +198,8 @@ tsCore = function() {
         setCardLabel: setCardLabel,
         moveClosedCardToLastList: moveClosedCardToLastList,
         getBoardStructure: getBoardStructure,
+        postNewCard: postNewCard,
+        getBoardLists: getBoardLists
     };
     // -----------------------------------------------------------------------
 
@@ -221,7 +247,7 @@ tsCore = function() {
     };
 
     function clearCardName(name) {
-        return name.split(/[^a-zA-Z0-9\-üöäÜÄÖß]+/).join("_").substring(0,40);
+        return name.split(/[^a-zA-Z0-9\-üöäÜÄÖß]+/).join("_").substring(0, 40);
     }
 
     function pad(num, size) {
