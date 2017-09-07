@@ -143,6 +143,21 @@ tsCore = function() {
         });
     }
 
+    var getCardsOfList = function(tc, argv) {
+        assertArgument(argv.l, '-l <LIST-ID> not provided.');
+        get(tc, '/1/lists/' + argv.l + '/cards', {
+            limit: 1000,
+            filter: 'all'
+        }).then(function(data) {
+            var cards = data.payload;
+            for (var card of cards) {
+                console.log("Deleting card \"" + card.name + "\" (" +
+                    card.id + ")");
+                del(tc, '/1/cards/' + card.id)
+            }
+        });
+    }
+
     var getBoardStructure = function(tc, argv) {
         assertArgument(argv.b, '-b <BOARD-ID> not provided.');
         get(tc, '/1/boards/' + argv.b + '/lists').then((data) => {
@@ -196,6 +211,7 @@ tsCore = function() {
         getCardStatistics: getCardStatistics,
         getCardLabels: getCardLabels,
         setCardLabel: setCardLabel,
+        getCardsOfList: getCardsOfList,
         moveClosedCardToLastList: moveClosedCardToLastList,
         getBoardStructure: getBoardStructure,
         postNewCard: postNewCard,
